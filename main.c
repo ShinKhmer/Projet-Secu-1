@@ -10,17 +10,23 @@ int main(int argc, char **argv)
     FILE* explore = NULL;
     char *line = NULL;
     char *text = NULL;
+    int *bin = NULL;
+    char *hexa = NULL;
 
-
-
-    int i = 0;
-    int cnt = 0;
+    int size_text = 0;
 
 
     line = malloc( sizeof(char) * SIZE );
     line[0] = '\0';                         // init line
 
     text = malloc( sizeof(char) * SIZE );
+    line[0] = '\0';
+
+    bin = malloc( sizeof(int) * SIZE * 8 );
+    init(bin);
+
+    hexa = malloc( sizeof(char) * SIZE / 4 );
+    hexa[0] = '\0';
 
     // File pointer
     explore = fopen("texte.txt", "r+");     // Open file / r+: read and write
@@ -28,27 +34,14 @@ int main(int argc, char **argv)
     if( explore != NULL ){
 
         // FILE RECOVERY
-        read_file( explore, line, text, SIZE);
-        /*cnt = 0;                            // Each line read will make cnt++
-        while( fgets( line, SIZE, explore) != NULL ){
-            printf( "%s\n", line );
-            if(cnt == 0){                   // 1st line => copy
-                strcpy( text, line );
-            }
-            else{                           // next lines => concat
-                strcat( text, line );
-            }
-            printf( "%d\n", strlen(line) );
-            cnt++;
-        }*/
-        printf( "Texte final: %s\n", text );
-        printf( "Taille texte: %d\n", strlen(text) );
+        read_file( explore, line, text );      // Function read and put all the lines read into one char chain
+        size_text = strlen(text);
 
 
         // CONVERT BINARY TO HEXA
-        /*for( i = 0; i < strlen(text); i++ ){
-            tab[i]
-        }*/
+        convert_char_to_bin( text, bin, size_text );
+        printf( "\nTaille texte: %d\n", strlen(text) );
+
 
 
 
@@ -66,8 +59,8 @@ int main(int argc, char **argv)
     }
 
 
-
-
+    free(hexa);
+    free(bin);
     free(text);
     free(line);
 
@@ -75,7 +68,18 @@ int main(int argc, char **argv)
 }
 
 
-void read_file( char *file, char *line, char* text, int size ){
+
+void init( int *tab ){
+    int i = 0;
+
+    for( i = 0; i < SIZE * 8; i++ ){
+        tab[i] = 0;
+    }
+}
+
+
+
+void read_file( char *file, char *line, char* text ){
 
     int cnt = 0;                            // Each line read will make cnt++
 
@@ -83,14 +87,13 @@ void read_file( char *file, char *line, char* text, int size ){
     text[0] = '\0';
 
         while( fgets( line, SIZE, file) != NULL ){
-            printf( "%s\n", line );
             if(cnt == 0){                   // 1st line => copy
                 strcpy( text, line );
             }
             else{                           // next lines => concat
                 strcat( text, line );
             }
-            printf( "%d\n", strlen(line) );
+            printf( "Taille ligne %d: %d\n", (cnt + 1), strlen(line) );
             cnt++;
         }
     }else{
@@ -98,5 +101,70 @@ void read_file( char *file, char *line, char* text, int size ){
     }
 
 }
+
+
+void convert_char_to_bin( char *text, int *bin, int size ){
+    int i = 0;
+    int j = 0;
+    int mem = 0;
+    int cnt = 0;
+
+    for( i = 0; i < size ; i++ ){
+
+        mem = text[i];
+
+        for( j = 7; j >= 0; j-- ){
+            if( mem % 2 == 0 ){
+                bin[j+cnt] = 0;
+            }else{
+                bin[j+cnt] = 1;
+            }
+            mem /= 2;
+        }
+        cnt += 8;
+    }
+
+    cnt = 0;
+
+    for( i = 0; i < size * 8; i++ ){
+
+        if( i == 0 ){
+            printf("%c: ", text[cnt]);
+            cnt++;
+        }
+
+        if( i != 0 && i % 8 == 0 ){
+            printf("\n%c: ", text[cnt]);
+            cnt++;
+        }
+
+        printf("%d" , bin[i]);
+    }
+
+    //print_bin( text, bin, size );
+
+}
+
+void print_bin( char *text, char* bin, int size ){
+    int cnt = 0;
+    int i = 0;
+
+    for( i = 0; i < size * 8; i++ ){
+
+        if( i == 0 ){
+            printf("%c: ", text[cnt]);
+            cnt++;
+        }
+
+        if( i != 0 && i % 8 == 0 ){
+            printf("\n%c: ", text[cnt]);
+            cnt++;
+        }
+
+        printf("%d" , bin[i]);
+    }
+}
+
+
 
 
