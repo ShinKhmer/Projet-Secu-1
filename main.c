@@ -42,6 +42,7 @@ int main(int argc, char **argv)
         convert_char_to_bin( text, bin, size_text );
         printf( "\nTaille texte: %d\n", strlen(text) );
 
+        print_bin( text, bin, size_text );
 
 
 
@@ -126,7 +127,7 @@ void convert_char_to_bin( char *text, int *bin, int size ){
 
     cnt = 0;
 
-    for( i = 0; i < size * 8; i++ ){
+    /*for( i = 0; i < size * 8; i++ ){
 
         if( i == 0 ){
             printf("%c: ", text[cnt]);
@@ -139,13 +140,11 @@ void convert_char_to_bin( char *text, int *bin, int size ){
         }
 
         printf("%d" , bin[i]);
-    }
-
-    //print_bin( text, bin, size );
+    }*/
 
 }
 
-void print_bin( char *text, char* bin, int size ){
+void print_bin( char *text, int* bin, int size ){
     int cnt = 0;
     int i = 0;
 
