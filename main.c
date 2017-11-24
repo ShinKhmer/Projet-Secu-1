@@ -30,12 +30,13 @@ int main(int argc, char **argv)
     text[0] = '\0';
 
     bin = malloc( sizeof(int) * SIZE * 8 );
-    init(bin);
+    init(bin, SIZE * 8);                    // Possibilité d'optimiser le SIZE
 
     hexa = malloc( sizeof(char) * SIZE * 8 / 4 );
     hexa[0] = '\0';
 
     matrix = malloc( sizeof(int) * size_matrix );
+    init(matrix, size_matrix);
 
 
 
@@ -61,6 +62,9 @@ int main(int argc, char **argv)
         line[0] = '\0';                         // init line
         read_matrix( explore_matrix, line, matrix, size_matrix );
 
+        printf("\n==================== MATRICE ====================");
+        print_tab_int( matrix, size_matrix, 8 );
+
         // ECRITURE
         //fputs( 'A', text );
 
@@ -83,10 +87,10 @@ int main(int argc, char **argv)
 
 
 
-void init( int *tab ){
+void init( int *tab, int size ){
     int i = 0;
 
-    for( i = 0; i < SIZE * 8; i++ ){
+    for( i = 0; i < size; i++ ){
         tab[i] = 0;
     }
 }
@@ -117,20 +121,20 @@ void read_file( char *file, char *line, char* text ){
 
 void read_matrix( char *file, char *line, int *tab, int size ){
     int i = 0;
-    int cnt = 0;
+    int cnt = 0;                // count number
 
 
-    if( tab != NULL ){
-        init(tab);
+    if( file != NULL ){
 
         while( fgets( line, size, file ) != NULL ){
-            printf("Taille ligne matrice: %d\n", strlen(line));
             // Browse line to search number
             i = 0;
-            while( i < strlen(line) && line[i] != '\0' || line[i] != '\n'){
-                tab[cnt] = line[i] - 48;
+            while( i < strlen(line) && ( line[i] != '\0' || line[i] != '\n' ) ){
+                if( line[i] == 48 || line[i] == 49 ){               // 0 or 1 in ASCII
+                    tab[cnt] = line[i] - 48;
+                    cnt++;
+                }
                 i++;
-                cnt++;
             }
         }
     }
@@ -222,9 +226,6 @@ void print_result( char *text, int* bin, char *hexa, int size ){
 
         if( i == size * 8 - 1 )                                 // print last hexa
             printf(" => %c %c ", hexa[cnt*2], hexa[cnt*2+1] );
-
-
-
     }
 
     printf("\n\n");
@@ -233,15 +234,7 @@ void print_result( char *text, int* bin, char *hexa, int size ){
 
 
 
-
-
-
-
-
-
-
-
-/*void print_tab_char( char *tab, int size, int separate ){
+void print_tab_char( char *tab, int size, int separate ){
     int i = 0;
 
     for( i = 0; i < size; i++ ){
@@ -252,11 +245,15 @@ void print_result( char *text, int* bin, char *hexa, int size ){
     }
 }
 
-void print_tab_int( int *tab, int size ){
+void print_tab_int( int *tab, int size, int separate ){
     int i = 0;
 
     for( i = 0; i < size; i++ ){
-        printf("%d\n", tab[i]);
+        if( separate != 0 ){
+            if( i % separate == 0)
+                printf("\n");
+        }
+        printf("%d", tab[i]);
     }
-}*/
+}
 
