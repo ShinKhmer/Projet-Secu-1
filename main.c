@@ -1,27 +1,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define SIZE 100
+#define SIZE 500
 
 
 int main(int argc, char **argv)
 {
 
     FILE* explore = NULL;
-    FILE* matrice = NULL;
+    FILE* explore_matrix = NULL;
     char *line = NULL;
     char *text = NULL;
+    int *matrix = NULL;
     int *bin = NULL;
     char *hexa = NULL;
 
     int size_text = 0;
+    int size_matrix = 4*8;
+
+    // FILE POINTER
+    explore = fopen("texte.txt", "r+");     // Open file / r+: read and write
+    explore_matrix = fopen("matrice.txt", "r");
 
 
     line = malloc( sizeof(char) * SIZE );
     line[0] = '\0';                         // init line
 
     text = malloc( sizeof(char) * SIZE );
-    line[0] = '\0';
+    text[0] = '\0';
 
     bin = malloc( sizeof(int) * SIZE * 8 );
     init(bin);
@@ -29,9 +35,9 @@ int main(int argc, char **argv)
     hexa = malloc( sizeof(char) * SIZE * 8 / 4 );
     hexa[0] = '\0';
 
-    // File pointer
-    explore = fopen("texte.txt", "r+");     // Open file / r+: read and write
-    matrice = fopen("matrice.txt", "r");
+    matrix = malloc( sizeof(int) * size_matrix );
+
+
 
     if( explore != NULL ){
 
@@ -52,7 +58,8 @@ int main(int argc, char **argv)
 
 
         // SEARCH
-        read_matrice( matrice );
+        line[0] = '\0';                         // init line
+        read_matrix( explore_matrix, line, matrix, size_matrix );
 
         // ECRITURE
         //fputs( 'A', text );
@@ -65,7 +72,7 @@ int main(int argc, char **argv)
         printf("Impossible d'ouvrir le fichier !");     // text = NULL => print error
     }
 
-
+    free(matrix);
     free(hexa);
     free(bin);
     free(text);
@@ -83,6 +90,7 @@ void init( int *tab ){
         tab[i] = 0;
     }
 }
+
 
 void read_file( char *file, char *line, char* text ){
 
@@ -105,6 +113,27 @@ void read_file( char *file, char *line, char* text ){
         printf("L'allocation de la variable text n'a pas fonctionné.");
     }
 
+}
+
+void read_matrix( char *file, char *line, int *tab, int size ){
+    int i = 0;
+    int cnt = 0;
+
+
+    if( tab != NULL ){
+        init(tab);
+
+        while( fgets( line, size, file ) != NULL ){
+            printf("Taille ligne matrice: %d\n", strlen(line));
+            // Browse line to search number
+            i = 0;
+            while( i < strlen(line) && line[i] != '\0' || line[i] != '\n'){
+                tab[cnt] = line[i] - 48;
+                i++;
+                cnt++;
+            }
+        }
+    }
 }
 
 void convert_char_to_bin( char *text, int *bin, int size ){
