@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define SIZE 500
+#define NUM_MATRIX 4
 
 
 int main(int argc, char **argv)
@@ -14,9 +15,13 @@ int main(int argc, char **argv)
     int *matrix = NULL;
     int *bin = NULL;
     char *hexa = NULL;
+    int *sub_messages = NULL;
 
+
+    int i = 0;
     int size_text = 0;
-    int size_matrix = 4*8;
+    int size_matrix = NUM_MATRIX*8;     // A modifier
+    int size_initial_matrix = NUM_MATRIX;
 
     // FILE POINTER
     explore = fopen("texte.txt", "r+");     // Open file / r+: read and write
@@ -40,6 +45,7 @@ int main(int argc, char **argv)
 
 
 
+
     if( explore != NULL ){
 
         // FILE RECOVERY
@@ -58,23 +64,46 @@ int main(int argc, char **argv)
         print_result( text, bin, hexa, size_text );
 
 
-        // SEARCH
+        // SEARCH MATRIX
         line[0] = '\0';                         // init line
         read_matrix( explore_matrix, line, matrix, size_matrix );
 
         printf("\n==================== MATRICE ====================");
-        print_tab_int( matrix, size_matrix, 8 );
+        print_tab_int( matrix, size_matrix, size_matrix / NUM_MATRIX );
+
+
+        // CALCULATE SUB MESSAGES
+
+        sub_messages = malloc( sizeof(int *) * size_text * 2 );
+        for( i = 0; i < size_text * 2; i++ ){
+            sub_messages[i] = malloc( sizeof(int) * size_matrix / NUM_MATRIX);
+        }
+
+        init_double( sub_messages, size_text, size_matrix );
+
+        calculate_sub_message( bin, matrix, sub_messages, size_text, size_matrix, size_initial_matrix );
+        printf("==================== SUB-MESSAGES ====================\n");
+        print_tab_int_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
+
+
 
         // ECRITURE
         //fputs( 'A', text );
 
 
-
-        fclose(explore);   // Close file
+        fclose(explore_matrix);         // Close file
+        fclose(explore);
     }
     else{
         printf("Impossible d'ouvrir le fichier !");     // text = NULL => print error
     }
+
+    printf("ok");
+    for( i = 0; i < (size_text * 2) ; i++ ){
+        free(sub_messages[i]);
+    }
+    free(sub_messages);
+    printf("free sub");
 
     free(matrix);
     free(hexa);
@@ -95,6 +124,16 @@ void init( int *tab, int size ){
     }
 }
 
+void init_double( int **tab, int size_text, int size_matrix ){
+    int i = 0;
+    int j = 0;
+
+    for( i = 0; i < size_text; i++ ){
+        for( j = 0; j < size_matrix; j++ ){
+            tab[i][j] = 0;
+        }
+    }
+}
 
 void read_file( char *file, char *line, char* text ){
 
@@ -117,27 +156,6 @@ void read_file( char *file, char *line, char* text ){
         printf("L'allocation de la variable text n'a pas fonctionné.");
     }
 
-}
-
-void read_matrix( char *file, char *line, int *tab, int size ){
-    int i = 0;
-    int cnt = 0;                // count number
-
-
-    if( file != NULL ){
-
-        while( fgets( line, size, file ) != NULL ){
-            // Browse line to search number
-            i = 0;
-            while( i < strlen(line) && ( line[i] != '\0' || line[i] != '\n' ) ){
-                if( line[i] == 48 || line[i] == 49 ){               // 0 or 1 in ASCII
-                    tab[cnt] = line[i] - 48;
-                    cnt++;
-                }
-                i++;
-            }
-        }
-    }
 }
 
 void convert_char_to_bin( char *text, int *bin, int size ){
@@ -231,7 +249,63 @@ void print_result( char *text, int* bin, char *hexa, int size ){
     printf("\n\n");
 }
 
+void read_matrix( char *file, char *line, int *tab, int size ){     // Penser à mettre des erreurs lorsqu'il y a des colonnes identiques & colonne à 0
+    int i = 0;
+    int cnt = 0;                // count number
 
+
+    if( file != NULL ){
+
+        while( fgets( line, size, file ) != NULL ){
+            // Browse line to search number
+            i = 0;
+            while( i < strlen(line) && ( line[i] != '\0' || line[i] != '\n' ) ){
+                if( line[i] == 48 || line[i] == 49 ){               // 0 or 1 in ASCII
+                    tab[cnt] = line[i] - 48;
+                    cnt++;
+                }
+                i++;
+            }
+        }
+    }
+}
+
+void calculate_sub_message( int *binary, int *matrix, int **sub_messages, int size_text, int size_matrix, int size_initial_matrix ){
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    int cnt = 0;
+    int result = 0;
+
+    for( i = 0; i < size_text * 2; i++ ){        // number of sub messages
+
+        for( j = 0; j < size_matrix / NUM_MATRIX; j++ ){       // number of columns in the matrix
+
+            result = 0;
+            for( k = 0; k < size_initial_matrix; k++ ){     // calculate initial matrix's line with matrix's column
+                result += binary[k+cnt] * (matrix[k * 8 + j]);
+                /*f( i == 0 && j == 3 )
+                    printf("bin: %d x matrix: %d = %d \n", binary[k+cnt], (matrix[k * 8 + j]), result);*/
+            }
+            /*if( i == 0 && j == 3 )
+                printf("result: %d\n", result);*/
+
+            if( result % 2 == 0 ){
+                sub_messages[i][j] = 0;
+            }
+            else if( result % 2 == 1 ){
+                sub_messages[i][j] = 1;
+            }
+            else
+                printf("Il y a un probleme dans la matrice, il faut appeler Neo !");
+        }
+
+        cnt += 4;
+    }
+
+
+
+}
 
 
 void print_tab_char( char *tab, int size, int separate ){
@@ -255,5 +329,20 @@ void print_tab_int( int *tab, int size, int separate ){
         }
         printf("%d", tab[i]);
     }
+
+    printf("\n\n");
 }
 
+void print_tab_int_double( int **tab, int sizei, int sizej ){
+    int i = 0;
+    int j = 0;
+
+    for( i = 0; i < sizei; i++ ){
+        for( j = 0; j < sizej; j++ ){
+            if( j % 8 == 0 )
+                printf("%d: ", i);
+            printf("%d ", tab[i][j]);
+        }
+        printf("\n");
+    }
+}

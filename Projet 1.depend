@@ -3,7 +3,12 @@
 	<stdio.h>
 	<stdlib.h>
 
-1511544174 source:d:\codeblocks\projects\secu\projet-secu-1\main.c
+1511568212 source:d:\codeblocks\projects\secu\projet-secu-1\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1511122439 source:c:\users\cmeng\downloads\caro\caro_secu.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
