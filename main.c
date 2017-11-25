@@ -16,6 +16,7 @@ int main(int argc, char **argv)
     int *bin = NULL;
     char *hexa = NULL;
     int *sub_messages = NULL;
+    int *bin_double = NULL;
 
 
     int i = 0;
@@ -24,7 +25,7 @@ int main(int argc, char **argv)
     int size_initial_matrix = NUM_MATRIX;
 
     // FILE POINTER
-    explore = fopen("texte.txt", "r+");     // Open file / r+: read and write
+    explore = fopen("texte.txt", "r");     // Open file / r+: read and write
     explore_matrix = fopen("matrice.txt", "r");
 
 
@@ -43,6 +44,11 @@ int main(int argc, char **argv)
     matrix = malloc( sizeof(int) * size_matrix );
     init(matrix, size_matrix);
 
+    bin_double = malloc( sizeof(int) * size_text * 2 );
+    for( i = 0; i < size_text * 2; i++){
+        bin_double[i] = malloc( sizeof(int) * size_matrix );
+    }
+
 
 
 
@@ -59,7 +65,7 @@ int main(int argc, char **argv)
 
 
         // CONVERT BINARY TO HEXA => NOT NECCESSARY
-        convert_bin_to_hexa( bin, hexa, size_text );
+        convert_bin_to_hexa( bin, hexa, size_text * 8 / 4 );
 
         print_result( text, bin, hexa, size_text );
 
@@ -79,13 +85,15 @@ int main(int argc, char **argv)
             sub_messages[i] = malloc( sizeof(int) * size_matrix / NUM_MATRIX);
         }
 
-        init_double( sub_messages, size_text, size_matrix );
+        init_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
 
         calculate_sub_message( bin, matrix, sub_messages, size_text, size_matrix, size_initial_matrix );
-        printf("==================== SUB-MESSAGES ====================\n");
+        printf("\n==================== SUB-MESSAGES BIN ====================\n");
         print_tab_int_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
 
-
+        /*convert_bin_to_hexa( sub_messages, hexa, size_text * 8 / 4 * 2 );
+        printf("\n==================== SUB-MESSAGES HEXA ====================\n");
+        print_tab_char(  )*/
 
         // ECRITURE
         //fputs( 'A', text );
@@ -97,6 +105,11 @@ int main(int argc, char **argv)
     else{
         printf("Impossible d'ouvrir le fichier !");     // text = NULL => print error
     }
+
+    for( i = 0; i < size_text * 2; i++){
+        free(bin_double[i]);
+    }
+    free(bin_double);
 
     printf("ok");
     for( i = 0; i < (size_text * 2) ; i++ ){
@@ -124,12 +137,12 @@ void init( int *tab, int size ){
     }
 }
 
-void init_double( int **tab, int size_text, int size_matrix ){
+void init_double( int **tab, int line, int columns ){
     int i = 0;
     int j = 0;
 
-    for( i = 0; i < size_text; i++ ){
-        for( j = 0; j < size_matrix; j++ ){
+    for( i = 0; i < line; i++ ){
+        for( j = 0; j < columns; j++ ){
             tab[i][j] = 0;
         }
     }
@@ -188,7 +201,7 @@ void convert_bin_to_hexa( int *bin, char *hexa, int size ){
     int cnt = 0;
     int result = 0;
 
-    for( i = 0; i < size * 8 / 4; i++ ){
+    for( i = 0; i < size; i++ ){
 
         // SUM 4 BITS
         result = 0;
