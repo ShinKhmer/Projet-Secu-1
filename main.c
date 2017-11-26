@@ -5,11 +5,6 @@
 #define NUM_MATRIX 4
 
 
-int *init_int( int *, int );
-char *init_char( char *, int );
-int **init_int_double( int **, int, int );
-char **init_char_double( char **, int, int );
-
 int main(int argc, char **argv)
 {
 
@@ -25,7 +20,7 @@ int main(int argc, char **argv)
 
 
     int i = 0;
-    int size_string = 0;
+    int size_text = 0;
     int size_matrix = NUM_MATRIX*8;     // A modifier
     int size_initial_matrix = NUM_MATRIX;
 
@@ -34,71 +29,69 @@ int main(int argc, char **argv)
     explore_matrix = fopen("matrice.txt", "r");
 
 
+    line = malloc( sizeof(char) * SIZE );
+    line[0] = '\0';                         // init line
+
+    text = malloc( sizeof(char) * SIZE );
+    text[0] = '\0';
+
+    bin = malloc( sizeof(int) * SIZE * 8 );
+    init(bin, SIZE * 8);                    // Possibilité d'optimiser le SIZE
+
+    hexa = malloc( sizeof(char) * SIZE * 8 / 4 );
+    hexa[0] = '\0';
+
+    matrix = malloc( sizeof(int) * size_matrix );
+    init(matrix, size_matrix);
+
+    bin_double = malloc( sizeof(int) * size_text * 2 );
+    for( i = 0; i < size_text * 2; i++){
+        bin_double[i] = malloc( sizeof(int) * 8 );  // A optimiser la taille !
+    }
+
+
+
 
     if( explore != NULL ){
 
-        //line = init_char( line, SIZE );            // init line
-        line = malloc( sizeof(char) * SIZE );
-        line[SIZE-1] = '\0';
-        text = malloc( sizeof(char) * SIZE );
-        text[SIZE-1] = '\0';
-
-        //text = init_char( text, SIZE );
-
-        //bin = init_char( bin, SIZE );
-
         // FILE RECOVERY
         read_file( explore, line, text );      // Function read and put all the lines read into one char chain
-        printf("%d", strlen(text));
-        size_string = strlen(text);
+        size_text = strlen(text);
 
-
-        // INIT TAB BIN AND HEXA
-        /*bin = init_int( bin, size * 8 );
-        hexa = init_char( hexa, size * 8 / 4 );
 
         // CONVERT CHAR TO BINARY
-        convert_char_to_bin( text, bin, size );
+        convert_char_to_bin( text, bin, size_text );
+        printf( "\nTaille texte: %d\n", strlen(text) );
 
 
         // CONVERT BINARY TO HEXA => NOT NECCESSARY
-        convert_bin_to_hexa( bin, hexa, size * 8 / 4 );
+        convert_bin_to_hexa( bin, hexa, size_text * 8 / 4 );
 
-        print_result( text, bin, hexa, size );
+        print_result( text, bin, hexa, size_text );
 
-
-        // INIT MATRIX
-        init_int( matrix, size_matrix );
 
         // SEARCH MATRIX
-        line[0] = '\0';                         // init line
+        /*line[0] = '\0';                         // init line
         read_matrix( explore_matrix, line, matrix, size_matrix );
 
         printf("\n==================== MATRICE ====================");
         print_tab_int( matrix, size_matrix, size_matrix / NUM_MATRIX );
-
+*/
 
         // CALCULATE SUB MESSAGES
 
-        sub_messages = malloc( sizeof(int *) * size * 2 );
-        for( i = 0; i < size * 2; i++ ){
+        /*sub_messages = malloc( sizeof(int *) * size_text * 2 );
+        for( i = 0; i < size_text * 2; i++ ){
             sub_messages[i] = malloc( sizeof(int) * size_matrix / NUM_MATRIX);
         }
 
-        init_double( sub_messages, size * 2, size_matrix / NUM_MATRIX );
-
-        calculate_sub_message( bin, matrix, sub_messages, size, size_matrix, size_initial_matrix );
+        init_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
+*/
+        //calculate_sub_message( bin, matrix, sub_messages, size_text, size_matrix, size_initial_matrix );
         printf("\n==================== SUB-MESSAGES BIN ====================\n");
-        print_tab_int_double( sub_messages, size * 2, size_matrix / NUM_MATRIX );
-        printf("ok");*/
+        //print_tab_int_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
 
-
-        /*bin_double = malloc( sizeof(int) * size * 2 );
-        for( i = 0; i < size * 2; i++){
-            bin_double[i] = malloc( sizeof(int) * size_matrix );
-        }
-
-        convert_bin_to_hexa( sub_messages, hexa, size * 8 / 4 * 2 );
+        /*convert_bin_to_hexa( sub_messages, hexa, size_text * 8 / 4 * 2 );
         printf("\n==================== SUB-MESSAGES HEXA ====================\n");
         print_tab_char(  )*/
 
@@ -113,13 +106,13 @@ int main(int argc, char **argv)
         printf("Impossible d'ouvrir le fichier !");     // text = NULL => print error
     }
 
-    for( i = 0; i < size_string * 2; i++){
+    for( i = 0; i < size_text * 2; i++){
         free(bin_double[i]);
     }
     free(bin_double);
 
     printf("ok");
-    for( i = 0; i < (size_string * 2) ; i++ ){
+    for( i = 0; i < (size_text * 2) ; i++ ){
         free(sub_messages[i]);
     }
     free(sub_messages);
@@ -135,56 +128,6 @@ int main(int argc, char **argv)
 }
 
 
-int *init_int( int *tab, int size ){
-    int i = 0;
-
-    tab = malloc( sizeof(int) * size );
-
-    for( i = 0; i < size; i++ ){
-        tab[i] = 0;
-    }
-}
-
-char *init_char( char *tab, int size ){
-    int i = 0;
-
-    tab = malloc( sizeof(char) * size );
-
-    tab[0] = '\0';
-
-    return tab;
-}
-
-
-int **init_int_double( int **tab, int line, int column ){
-    int i = 0;
-    int j = 0;
-
-    tab = malloc( sizeof(int *) * line );
-    for(i = 0; i < line; i++ ){
-        tab[i] = malloc( sizeof(int) * column );
-    }
-
-    for( i = 0; i < line; i++ ){
-        for( j = 0; j < column; j++ ){
-            tab[i][j] = 0;
-        }
-    }
-}
-
-char **init_char_double( char **tab, int line, int column ){
-    int i = 0;
-    int j = 0;
-
-    tab = malloc( sizeof(char *) * line );
-    for(i = 0; i < line; i++ ){
-        tab[i] = malloc( sizeof(char) * column );
-    }
-
-    for( i = 0; i < line; i++ ){
-        tab[i][0] = '\0';
-    }
-}
 
 void init( int *tab, int size ){
     int i = 0;
