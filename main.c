@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #define SIZE 500
+
 #define NUM_MATRIX 4
 
 
@@ -16,24 +18,37 @@ int main(int argc, char **argv)
     int *matrix = NULL;
     int *bin = NULL;
     char *hexa = NULL;
-    int *sub_messages = NULL;
+    int **sub_messages = NULL;
     char *hexa2 = NULL;
-    char *final_result = NULL;
+    unsigned char *final_result = NULL;
+    int **bin_decrypted = NULL;
 
 
     int i = 0;
+    int j = 0;
     int size_text = 0;
+    int size_text2 = 0;
     int size_matrix = NUM_MATRIX*8;     // A modifier
     int size_initial_matrix = NUM_MATRIX;
 
     // FILE POINTER
     explore = fopen("texte.txt", "r");     // Open file / r+: read and write
+
+    // SEARCH MATRIX
+    printf("\n==================== MATRICE ====================");
+    line = malloc( sizeof(char) * SIZE );
+    line[0] = '\0';                         // init line
+
     explore_matrix = fopen("matrice.txt", "r");
+    matrix = malloc( sizeof(int) * size_matrix );
+    init(matrix, size_matrix);
+
+    read_matrix( explore_matrix, line, matrix, size_matrix );
+    print_tab_int( matrix, size_matrix, size_matrix / NUM_MATRIX );
 
 
     if( explore != NULL ){
 
-        line = malloc( sizeof(char) * SIZE );
         line[0] = '\0';                         // init line
 
         text = malloc( sizeof(char) * SIZE );
@@ -44,7 +59,7 @@ int main(int argc, char **argv)
         hexa[0] = '\0';
 
         // FILE RECOVERY
-        read_file( explore, line, text, &size_text );      // Function read and put all the lines read into one char chain
+        read_file( explore, line, text );      // Function read and put all the lines read into one char chain
 
         printf("%s", text);
         size_text = strlen(text);
@@ -63,16 +78,6 @@ int main(int argc, char **argv)
 
         print_result( text, bin, hexa, size_text );
 
-
-        // SEARCH MATRIX
-        line[0] = '\0';                         // init line
-        matrix = malloc( sizeof(int) * size_matrix );
-        init(matrix, size_matrix);
-
-        read_matrix( explore_matrix, line, matrix, size_matrix );
-
-        printf("\n==================== MATRICE ====================");
-        print_tab_int( matrix, size_matrix, size_matrix / NUM_MATRIX );
 
 
         // CALCULATE SUB MESSAGES
@@ -97,9 +102,9 @@ int main(int argc, char **argv)
         hexa2 = malloc( sizeof(int) * size_text * 2 * 2 );
         hexa2[0] = '\0';
 
-        convert_bin_to_hexa2( sub_messages, hexa2, size_text * 2);
+        convert_bin_to_hexa2( sub_messages, hexa2, size_text);
 
-        print_tab_char( hexa2, size_text * 2, 2 );
+        print_tab_char( hexa2, size_text * 2 * 2, 2 );
 
 
         printf("\n==================== FINAL MESSAGE ====================\n");
@@ -107,14 +112,21 @@ int main(int argc, char **argv)
         final_result[0] = '\0';
 
         final_message( sub_messages, final_result, size_text * 2, size_matrix / NUM_MATRIX );
-        printf("\n=> %s", final_result);
 
 
 
         // ECRITURE
         encrypt = fopen( "texte.txtc", "w" );
         if( encrypt != NULL ){
-            fwrite( final_result, sizeof(char), size_text*2, encrypt );
+            i = 0;
+            while( final_result[i] != '\0' ){
+                if( final_result[i] < 0 )
+                    fputc( final_result[i], encrypt );           // +256 because extended ASCII are negatives
+                else{
+                    fputc( final_result[i], encrypt );
+                }
+                i++;
+            }
         }else{
             printf("Problème lors de l'ouverture de texte.txtc");
         }
@@ -132,7 +144,6 @@ int main(int argc, char **argv)
         free(hexa);
         free(bin);
         free(text);
-        free(line);
 
         fclose(encrypt);
         fclose(explore_matrix);         // Close file
@@ -143,34 +154,94 @@ int main(int argc, char **argv)
     }
 
 
-    encrypt = fopen( "texte.txtc", "r" );
+    // ==================================================================================
+    // DECRYPTAGE
+
+        printf("\n\n\n\==================== DECRYPTAGE ====================\n");          // optionnel
+
+    encrypt = fopen( "texte.txtc", "r+" );
 
     if( encrypt != NULL ){
 
-        line = malloc( sizeof(char) * SIZE );
         line[0] = '\0';                         // init line
 
         text = malloc( sizeof(char) * SIZE );
         text[0] = '\0';
 
-        size_text = 0;
+        size_text2 = 0;
 
 
         // READ FILE DECRYPT
 
-        read_file( encrypt, line, text, &size_text);
+        read_file( encrypt, line, text);
 
-        printf("\n%s", text);
+        size_text2 = strlen(text);
+
+        /*for(i = 0; i < size_text; i++ ){
+            if( text[i] < 0 )
+                text[i] += 256;
+
+            printf("%d %c ", text[i]);
+        }*/
 
 
 
+        printf("\nAffichage du fichier:\n%s\n", text);
+
+
+        // DECRYPT => TAKE THE 4 COLUMNS OF THE IDENTITY MATRIX
+
+        printf("\n==================== TEXTE EN BINAIRE ====================\n");          // optionnel
+
+        bin = malloc( sizeof(int) * size_text2 * 8 );
+        init(bin, size_text2 * 8);
+
+        convert_char_to_bin2( text, bin, size_text2 );
+        print_tab_int( bin, size_text2 * 8, 8 );
+
+        bin_decrypted = (int *)malloc( sizeof(int *) * size_text2 * 2 );
+        for( i = 0; i < size_text2 * 2; i++ ){
+            bin_decrypted[i] = (int *)malloc( sizeof(int) * ( size_matrix / NUM_MATRIX ) );
+        }
+        init_double( bin_decrypted, size_text2 * 2, size_matrix / NUM_MATRIX );
+        //matrix_order();
+
+
+        int cnt = 0;
+
+        // PRINT TEXT DECRYPTED => NEED A FUNCTION
+        for( i = 0; i < size_text2 / 2; i++ ){
+            for( j = 0; j < size_matrix / NUM_MATRIX; j++ ){
+                if( j < 4 ){
+                    bin_decrypted[i][j] = bin[j+cnt];
+                }
+                else{
+                    bin_decrypted[i][j] = bin[j + 4 + cnt];
+                }
+            }
+            cnt += 16;
+        }
+
+
+
+        final_result = malloc( sizeof(char) * (size_text2 + 1) );              // +1 for \0
+        final_result[0] = '\0';
+
+        final_message( bin_decrypted, final_result, size_text2 / 2, size_matrix / NUM_MATRIX );
+        printf( "MESSAGE DECODE:\n%s", final_result );
+
+
+        free(final_result);
+        for( i = 0; i < size_text2 * 2 ; i++ ){
+            free(bin_decrypted[i]);
+        }
+        free(bin);
+        free(text);
+        fclose(encrypt);
+    }
 
 
         free(line);
-        free(text);
-
-        fclose(encrypt);
-    }
 
     return 0;
 }
@@ -196,10 +267,9 @@ void init_double( int **tab, int line, int columns ){
     }
 }
 
-void read_file( char *file, char *line, char* text, int *size_string ){
+void read_file( char *file, char *line, char* text ){
 
     int i = 0;
-    int cnt_char = 0;
     int cnt_line = 0;                            // Each line read will make cnt_line++
 
     if( text != NULL ){
@@ -213,6 +283,8 @@ void read_file( char *file, char *line, char* text, int *size_string ){
             else{                           // next lines => concat
                 strcat( text, line );
             }
+
+
             printf( "Taille ligne %d: %d\n", (cnt_line + 1), strlen(line) );
             cnt_line++;
         }
@@ -222,11 +294,16 @@ void read_file( char *file, char *line, char* text, int *size_string ){
 
 
     while( text[i] != '\0' ){
-        cnt_char++;
         i++;
     }
 
-    *size_string = cnt_char;
+    if( cnt_line == 1 ){
+        while( text[i] != '\0' ){
+            if( text[i] == '\n' )
+                text[i] == '\0';
+        }
+    }
+
 
 }
 
@@ -239,6 +316,33 @@ void convert_char_to_bin( char *text, int *bin, int size ){
     for( i = 0; i < size ; i++ ){
 
         mem = text[i];
+
+        for( j = 7; j >= 0; j-- ){
+            if( mem % 2 == 0 ){
+                bin[j+cnt] = 0;
+            }else{
+                bin[j+cnt] = 1;
+            }
+            mem /= 2;
+        }
+        cnt += 8;
+    }
+
+    cnt = 0;
+}
+
+void convert_char_to_bin2( char *text, int *bin, int size ){
+    int i = 0;
+    int j = 0;
+    int mem = 0;
+    int cnt = 0;
+
+    for( i = 0; i < size ; i++ ){
+
+        mem = text[i];
+
+        if( mem < 0 )
+            mem += 256;
 
         for( j = 7; j >= 0; j-- ){
             if( mem % 2 == 0 ){
@@ -302,9 +406,10 @@ void convert_bin_to_hexa2( int **bin, char *hexa, int size ){
     int j = 0;
     int k = 0;
     int cnt = 0;
+    int counter = 0;
     int result = 0;
 
-    for( i = 0; i < size ; i++ ){       // number of line of 8 bits
+    for( i = 0; i < size * 2 ; i++ ){       // number of line of 8 bits
         cnt = 0;
         for( j = 0; j < 2; j++ ){           // group of 4 bits in a line
             result = 0;
@@ -327,14 +432,15 @@ void convert_bin_to_hexa2( int **bin, char *hexa, int size ){
             }
             // CONVERT TO HEXA
             if( result >= 0 && result <= 9 ){
-                hexa[i] = result + 48;          // ASCII 0 to 10
+                hexa[counter] = result + 48;          // ASCII 0 to 10
             }
             else if( result >= 10 && result <= 15 ){
-                hexa[i] = result + 55;          // ASCII A to F
+                hexa[counter] = result + 55;          // ASCII A to F
             }
             else{
                 printf("error");
             }
+            counter ++;
             cnt += 4;           // go to indice 4 of a line
         }
     }
@@ -460,8 +566,29 @@ void final_message( int **bin, char *text_encrypted, int size_lines, int size_ma
         printf("%c ", text_encrypted[i]);
     }
 
-    text_encrypted[size_lines - 1] = '\0';
+    text_encrypted[size_lines] = '\0';
 }
+
+
+void matrix_order( int *matrix, int size ){
+    int i = 0;
+    int j = 0;
+
+    for( i = 0; i < size; i++){
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 void print_tab_char( char *tab, int size, int separate ){
@@ -469,7 +596,7 @@ void print_tab_char( char *tab, int size, int separate ){
 
     for( i = 0; i < size; i++ ){
         if( i != 0 && i % separate == 0 )
-            printf("\n");
+            printf("   ");
 
         printf("%c", tab[i]);
     }
@@ -477,13 +604,16 @@ void print_tab_char( char *tab, int size, int separate ){
 
 void print_tab_int( int *tab, int size, int separate ){
     int i = 0;
+    int cnt = 0;
 
     for( i = 0; i < size; i++ ){
         if( separate != 0 ){
-            if( i % separate == 0)
-                printf("\n");
+            if( i % separate == 0){
+                printf("\n%d - ", cnt);
+                cnt++;
+            }
         }
-        printf("%d", tab[i]);
+        printf("%d ", tab[i]);
     }
 
     printf("\n\n");
