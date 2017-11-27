@@ -10,6 +10,7 @@ int main(int argc, char **argv)
 
     FILE* explore = NULL;
     FILE* explore_matrix = NULL;
+    FILE* encrypt = NULL;
     char *line = NULL;
     char *text = NULL;
     int *matrix = NULL;
@@ -17,6 +18,7 @@ int main(int argc, char **argv)
     char *hexa = NULL;
     int *sub_messages = NULL;
     char *hexa2 = NULL;
+    char *final_result = NULL;
 
 
     int i = 0;
@@ -29,22 +31,17 @@ int main(int argc, char **argv)
     explore_matrix = fopen("matrice.txt", "r");
 
 
-    line = malloc( sizeof(char) * SIZE );
-    line[0] = '\0';                         // init line
-
-    text = malloc( sizeof(char) * SIZE );
-    text[0] = '\0';
-
-
-    hexa = malloc( sizeof(char) * SIZE * 8 / 4 );
-    hexa[0] = '\0';
-
-    matrix = malloc( sizeof(int) * size_matrix );
-    init(matrix, size_matrix);
-
-
-
     if( explore != NULL ){
+
+        line = malloc( sizeof(char) * SIZE );
+        line[0] = '\0';                         // init line
+
+        text = malloc( sizeof(char) * SIZE );
+        text[0] = '\0';
+
+
+        hexa = malloc( sizeof(char) * SIZE * 8 / 4 );
+        hexa[0] = '\0';
 
         // FILE RECOVERY
         read_file( explore, line, text, &size_text );      // Function read and put all the lines read into one char chain
@@ -69,6 +66,9 @@ int main(int argc, char **argv)
 
         // SEARCH MATRIX
         line[0] = '\0';                         // init line
+        matrix = malloc( sizeof(int) * size_matrix );
+        init(matrix, size_matrix);
+
         read_matrix( explore_matrix, line, matrix, size_matrix );
 
         printf("\n==================== MATRICE ====================");
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 
         // CONVERT TO HEXA FOR HAVING ASCII CHAR
 
-        printf("\n==================== SUB-MESSAGES HEXA ====================\n");
+        printf("\n==================== SUB-MESSAGES HEXA ====================\n");          // optionnel
 
         hexa2 = malloc( sizeof(int) * size_text * 2 * 2 );
         hexa2[0] = '\0';
@@ -101,9 +101,40 @@ int main(int argc, char **argv)
 
         print_tab_char( hexa2, size_text * 2, 2 );
 
-        // ECRITURE
-        //fputs( 'A', text );
 
+        printf("\n==================== FINAL MESSAGE ====================\n");
+        final_result = malloc( sizeof(char) * (size_text * 2 + 1) );              // +1 for \0
+        final_result[0] = '\0';
+
+        final_message( sub_messages, final_result, size_text * 2, size_matrix / NUM_MATRIX );
+        printf("\n=> %s", final_result);
+
+
+
+        // ECRITURE
+        encrypt = fopen( "texte.txtc", "w" );
+        if( encrypt != NULL ){
+            fwrite( final_result, sizeof(char), size_text*2, encrypt );
+        }else{
+            printf("Problème lors de l'ouverture de texte.txtc");
+        }
+
+
+        // FULL FREE !
+        free(final_result);
+        free(hexa2);
+        for( i = 0; i < (size_text * 2) ; i++ ){
+            free(sub_messages[i]);
+        }
+        free(sub_messages);
+
+        free(matrix);
+        free(hexa);
+        free(bin);
+        free(text);
+        free(line);
+
+        fclose(encrypt);
         fclose(explore_matrix);         // Close file
         fclose(explore);
     }
@@ -112,17 +143,34 @@ int main(int argc, char **argv)
     }
 
 
-    free(hexa2);
-    for( i = 0; i < (size_text * 2) ; i++ ){
-        free(sub_messages[i]);
-    }
-    free(sub_messages);
+    encrypt = fopen( "texte.txtc", "r" );
 
-    free(matrix);
-    free(hexa);
-    free(bin);
-    free(text);
-    free(line);
+    if( encrypt != NULL ){
+
+        line = malloc( sizeof(char) * SIZE );
+        line[0] = '\0';                         // init line
+
+        text = malloc( sizeof(char) * SIZE );
+        text[0] = '\0';
+
+        size_text = 0;
+
+
+        // READ FILE DECRYPT
+
+        read_file( encrypt, line, text, &size_text);
+
+        printf("\n%s", text);
+
+
+
+
+
+        free(line);
+        free(text);
+
+        fclose(encrypt);
+    }
 
     return 0;
 }
@@ -373,6 +421,46 @@ void calculate_sub_message( int *binary, int *matrix, int **sub_messages, int si
 
 
 
+}
+
+
+void final_message( int **bin, char *text_encrypted, int size_lines, int size_matrix_column ){        // bin to char ASCII
+    int i = 0;
+    int j = 0;
+    int result = 0;
+
+    for( i = 0; i < size_lines; i++ ){
+        result = 0;
+        for( j = 0; j < size_matrix_column; j++ ){
+            if( bin[i][j] == 1 ){
+                switch( j ){
+                    case 0:     result += 128;
+                                break;
+                    case 1:     result += 64;
+                                break;
+                    case 2:     result += 32;
+                                break;
+                    case 3:     result += 16;
+                                break;
+                    case 4:     result += 8;
+                                break;
+                    case 5:     result += 4;
+                                break;
+                    case 6:     result += 2;
+                                break;
+                    case 7:     result += 1;
+                                break;
+                    default:    printf("Il y a un problème !");
+                                break;
+                }
+            }
+        }
+
+        text_encrypted[i] = result;
+        printf("%c ", text_encrypted[i]);
+    }
+
+    text_encrypted[size_lines - 1] = '\0';
 }
 
 
