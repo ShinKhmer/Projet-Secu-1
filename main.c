@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     int *bin = NULL;
     char *hexa = NULL;
     int *sub_messages = NULL;
-    int *bin_double = NULL;
+    char *hexa2 = NULL;
 
 
     int i = 0;
@@ -35,8 +35,6 @@ int main(int argc, char **argv)
     text = malloc( sizeof(char) * SIZE );
     text[0] = '\0';
 
-    bin = malloc( sizeof(int) * SIZE * 8 );
-    init(bin, SIZE * 8);                    // Possibilité d'optimiser le SIZE
 
     hexa = malloc( sizeof(char) * SIZE * 8 / 4 );
     hexa[0] = '\0';
@@ -44,60 +42,67 @@ int main(int argc, char **argv)
     matrix = malloc( sizeof(int) * size_matrix );
     init(matrix, size_matrix);
 
-    bin_double = malloc( sizeof(int) * size_text * 2 );
-    for( i = 0; i < size_text * 2; i++){
-        bin_double[i] = malloc( sizeof(int) * 8 );  // A optimiser la taille !
-    }
-
-
 
 
     if( explore != NULL ){
 
         // FILE RECOVERY
-        read_file( explore, line, text );      // Function read and put all the lines read into one char chain
+        read_file( explore, line, text, &size_text );      // Function read and put all the lines read into one char chain
+
+        printf("%s", text);
         size_text = strlen(text);
 
 
         // CONVERT CHAR TO BINARY
+        bin = malloc( sizeof(int) * size_text * 8 );
+        init(bin, size_text * 8);                    // Possibilité d'optimiser le SIZE
+
         convert_char_to_bin( text, bin, size_text );
         printf( "\nTaille texte: %d\n", strlen(text) );
 
 
         // CONVERT BINARY TO HEXA => NOT NECCESSARY
-        convert_bin_to_hexa( bin, hexa, size_text * 8 / 4 );
+        convert_bin_to_hexa( bin, hexa, size_text * 2 );
 
         print_result( text, bin, hexa, size_text );
 
 
         // SEARCH MATRIX
-        /*line[0] = '\0';                         // init line
+        line[0] = '\0';                         // init line
         read_matrix( explore_matrix, line, matrix, size_matrix );
 
         printf("\n==================== MATRICE ====================");
         print_tab_int( matrix, size_matrix, size_matrix / NUM_MATRIX );
-*/
+
 
         // CALCULATE SUB MESSAGES
 
-        /*sub_messages = malloc( sizeof(int *) * size_text * 2 );
+        printf("\n==================== SUB-MESSAGES BIN ====================\n");
+
+        sub_messages = malloc( sizeof(int *) * size_text * 2 );
         for( i = 0; i < size_text * 2; i++ ){
             sub_messages[i] = malloc( sizeof(int) * size_matrix / NUM_MATRIX);
         }
 
         init_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
-*/
-        //calculate_sub_message( bin, matrix, sub_messages, size_text, size_matrix, size_initial_matrix );
-        printf("\n==================== SUB-MESSAGES BIN ====================\n");
-        //print_tab_int_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
 
-        /*convert_bin_to_hexa( sub_messages, hexa, size_text * 8 / 4 * 2 );
+        calculate_sub_message( bin, matrix, sub_messages, size_text, size_matrix, size_initial_matrix );
+        print_tab_int_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
+
+
+        // CONVERT TO HEXA FOR HAVING ASCII CHAR
+
         printf("\n==================== SUB-MESSAGES HEXA ====================\n");
-        print_tab_char(  )*/
+
+        hexa2 = malloc( sizeof(int) * size_text * 2 * 2 );
+        hexa2[0] = '\0';
+
+        convert_bin_to_hexa2( sub_messages, hexa2, size_text * 2);
+
+        print_tab_char( hexa2, size_text * 2, 2 );
 
         // ECRITURE
         //fputs( 'A', text );
-
 
         fclose(explore_matrix);         // Close file
         fclose(explore);
@@ -106,17 +111,12 @@ int main(int argc, char **argv)
         printf("Impossible d'ouvrir le fichier !");     // text = NULL => print error
     }
 
-    for( i = 0; i < size_text * 2; i++){
-        free(bin_double[i]);
-    }
-    free(bin_double);
 
-    printf("ok");
+    free(hexa2);
     for( i = 0; i < (size_text * 2) ; i++ ){
         free(sub_messages[i]);
     }
     free(sub_messages);
-    printf("free sub");
 
     free(matrix);
     free(hexa);
@@ -148,26 +148,37 @@ void init_double( int **tab, int line, int columns ){
     }
 }
 
-void read_file( char *file, char *line, char* text ){
+void read_file( char *file, char *line, char* text, int *size_string ){
 
-    int cnt = 0;                            // Each line read will make cnt++
+    int i = 0;
+    int cnt_char = 0;
+    int cnt_line = 0;                            // Each line read will make cnt_line++
 
     if( text != NULL ){
     text[0] = '\0';
 
         while( fgets( line, SIZE, file) != NULL ){
-            if(cnt == 0){                   // 1st line => copy
+
+            if(cnt_line == 0){                   // 1st line => copy
                 strcpy( text, line );
             }
             else{                           // next lines => concat
                 strcat( text, line );
             }
-            printf( "Taille ligne %d: %d\n", (cnt + 1), strlen(line) );
-            cnt++;
+            printf( "Taille ligne %d: %d\n", (cnt_line + 1), strlen(line) );
+            cnt_line++;
         }
     }else{
         printf("L'allocation de la variable text n'a pas fonctionné.");
     }
+
+
+    while( text[i] != '\0' ){
+        cnt_char++;
+        i++;
+    }
+
+    *size_string = cnt_char;
 
 }
 
@@ -201,7 +212,7 @@ void convert_bin_to_hexa( int *bin, char *hexa, int size ){
     int cnt = 0;
     int result = 0;
 
-    for( i = 0; i < size; i++ ){
+    for( i = 0; i < size ; i++ ){
 
         // SUM 4 BITS
         result = 0;
@@ -237,6 +248,50 @@ void convert_bin_to_hexa( int *bin, char *hexa, int size ){
         cnt += 4;
     }
 }
+
+void convert_bin_to_hexa2( int **bin, char *hexa, int size ){
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    int cnt = 0;
+    int result = 0;
+
+    for( i = 0; i < size ; i++ ){       // number of line of 8 bits
+        cnt = 0;
+        for( j = 0; j < 2; j++ ){           // group of 4 bits in a line
+            result = 0;
+            for( k = 0; k < 4; k++ ){           // sum of 4 bits
+                if( bin[i][(k + cnt)] == 1 ){
+                    switch( k ){
+                        case 0: result += 8;
+                                break;
+                        case 1: result += 4;
+                                break;
+                        case 2: result += 2;
+                                break;
+                        case 3: result += 1;
+                                break;
+                        default:
+                                printf("Il y a une couille dans le pâté");
+                                break;
+                    }
+                }
+            }
+            // CONVERT TO HEXA
+            if( result >= 0 && result <= 9 ){
+                hexa[i] = result + 48;          // ASCII 0 to 10
+            }
+            else if( result >= 10 && result <= 15 ){
+                hexa[i] = result + 55;          // ASCII A to F
+            }
+            else{
+                printf("error");
+            }
+            cnt += 4;           // go to indice 4 of a line
+        }
+    }
+}
+
 
 void print_result( char *text, int* bin, char *hexa, int size ){
     int cnt = 0;
