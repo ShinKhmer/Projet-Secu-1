@@ -3,13 +3,16 @@
 	<stdio.h>
 	<stdlib.h>
 
-1511813673 source:d:\codeblocks\projects\secu\projet-secu-1\main.c
+1511903149 source:d:\codeblocks\projects\secu\projet-secu-1\main.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
+	"functions.h"
 
 1511122439 source:c:\users\cmeng\downloads\caro\caro_secu.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
+
+1511903623 d:\codeblocks\projects\secu\projet-secu-1\functions.h
 
