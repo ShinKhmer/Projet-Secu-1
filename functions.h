@@ -154,7 +154,7 @@ void convert_bin_to_hexa( int *bin, char *hexa, int size_tab ){
     }
 }
 
-void convert_bin_to_hexa2( int **bin, char *hexa, int size_tab ){
+void convert_bin_to_hexa_double( int **bin, char *hexa, int size_tab ){
     int i = 0;
     int j = 0;
     int k = 0;
@@ -328,15 +328,50 @@ void final_message( int **bin, char *text_encrypted, int size_lines, int size_ma
 }
 
 
-void matrix_order( int *matrix, int size_tab ){
+void matrix_order( int *matrix, int *index, int size_tab, int size_id_matrix){
     int i = 0;
-    int j = 0;
 
     for( i = 0; i < size_tab; i++){
+        if( matrix[i] == 1 && matrix[i + 8] == 0 && matrix[i + 16] == 0 && matrix[i + 24] == 0 )
+            index[0] = i;
+
+        if( matrix[i] == 0 && matrix[i + 8] == 1 && matrix[i + 16] == 0 && matrix[i + 24] == 0 )
+            index[1] = i;
+
+        if( matrix[i] == 0 && matrix[i + 8] == 0 && matrix[i + 16] == 1 && matrix[i + 24] == 0 )
+            index[2] = i;
+
+        if( matrix[i] == 0 && matrix[i + 8] == 0 && matrix[i + 16] == 0 && matrix[i + 24] == 1 )
+            index[3] = i;
     }
+
+    printf("\nOrdre des colonnes de la matrice identite:\n");
+    print_tab_int( index, size_id_matrix, 0 );
 
 }
 
+
+void final_bin( int ** bin_decrypted, int *bin, int *index, int lines, int columns ){
+    int i = 0;
+    int j = 0;
+    int cnt = 0;
+
+    // PRINT TEXT DECRYPTED => NEED A FUNCTION
+    for( i = 0; i < lines; i++ ){
+        for( j = 0; j < columns; j++ ){
+            if( j < 4 ){
+                bin_decrypted[i][j] = bin[index[j]+cnt];
+                if( j == 3 )
+                    cnt += 8;
+            }
+            else{
+                bin_decrypted[i][j] = bin[index[j-4]+cnt];
+            }
+        }
+        cnt += 8;
+    }
+
+}
 
 
 

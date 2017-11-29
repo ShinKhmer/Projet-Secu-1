@@ -3,6 +3,10 @@
 #include <string.h>
 #define SIZE 500
 #define NUM_MATRIX 4
+#define MATRICE "matrice.txt"
+#define TEXT "texte.txt"
+#define TEXT_ENCRYPTED "texte.txtc"
+#define TEXT_DECRYPTED "texte_decrypted.txt"
 #include "functions.h"
 
 
@@ -12,13 +16,14 @@ int main(int argc, char **argv)
     FILE* explore = NULL;
     FILE* explore_matrix = NULL;
     FILE* encrypt = NULL;
+    FILE* decrypt = NULL;
     char *line = NULL;
     char *text = NULL;
     int *matrix = NULL;
+    int *index = NULL;
     int *bin = NULL;
     char *hexa = NULL;
     int **sub_messages = NULL;
-    char *hexa2 = NULL;
     unsigned char *final_result = NULL;
     int **bin_decrypted = NULL;
 
@@ -33,26 +38,28 @@ int main(int argc, char **argv)
 
 
     do{
-        printf("\n\n==================== APPLICATION DE CRYPTAGE ====================\n\n");
+        printf("\n===================================================\n");
+        printf("============= APPLICATION DE CRYPTAGE =============\n");
+        printf("===================================================\n");
 
         printf("\n1 - Cryptage\n");
         printf("\n2 - Decryptage\n");
         printf("\n9 - Quitter programme\n");
 
-
+        printf("\nVotre choix:\n");
         choice = 0;
         scanf("%d", &choice);
 
         switch( choice ){
 
-            line = malloc( sizeof(char) * SIZE );
-            line[0] = '\0';                         // init line
-
             case 1:
                         // SEARCH MATRIX
-                        printf("\n==================== MATRICE ====================");
+                        printf("\n\n==================== MATRICE ====================\n");
 
-                        explore_matrix = fopen("matrice.txt", "r");
+                        line = malloc( sizeof(char) * SIZE );
+                        line[0] = '\0';                         // init line
+
+                        explore_matrix = fopen(MATRICE, "r");
                         matrix = malloc( sizeof(int) * size_matrix );
                         init(matrix, size_matrix);
 
@@ -60,12 +67,11 @@ int main(int argc, char **argv)
                         print_tab_int( matrix, size_matrix, size_matrix / NUM_MATRIX );
 
                         // FILE POINTER
-                        explore = fopen("texte.txt", "r");     // Open file / r+: read and write
+                        explore = fopen(TEXT, "r");     // Open file / r+: read and write
 
 
                             if( explore != NULL ){
-
-                                line[0] = '\0';                         // init line
+                                line[0] = '\0';
 
                                 text = malloc( sizeof(char) * SIZE );
                                 text[0] = '\0';
@@ -74,7 +80,7 @@ int main(int argc, char **argv)
                                 hexa = malloc( sizeof(char) * SIZE * 8 / 4 );
                                 hexa[0] = '\0';
 
-                                printf("\n==================== FILE CONTENT ====================\n");
+                                printf("\n\n============== CONTENU DU FICHIER ===============\n");
 
                                 // FILE RECOVERY
                                 read_file( explore, line, text );      // Function read and put all the lines read into one char chain
@@ -91,7 +97,7 @@ int main(int argc, char **argv)
                                 printf( "\n\nTaille texte: %d\n\n", strlen(text) );
 
 
-                                printf("\n==================== BINARY CONTENT ====================\n");
+                                printf("\n\n============= CARACTERES EN BINAIRE =============\n");
 
                                 // CONVERT BINARY TO HEXA => NOT NECCESSARY
                                 convert_bin_to_hexa( bin, hexa, size_text * 2 );
@@ -100,9 +106,9 @@ int main(int argc, char **argv)
 
 
 
-                                // CALCULATE SUB MESSAGES
+                                // CALCULATE SUB MESSAGES   => Uncomment line 109 and 119 for having more informations
 
-                                printf("\n==================== SUB-MESSAGES BIN ====================\n");
+                                //printf("\n\n==================== SOUS-MESSAGES ====================\n");
 
                                 sub_messages = malloc( sizeof(int *) * size_text * 2 );
                                 for( i = 0; i < size_text * 2; i++ ){
@@ -112,66 +118,78 @@ int main(int argc, char **argv)
                                 init_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
 
                                 calculate_sub_message( bin, matrix, sub_messages, size_text, size_matrix, size_initial_matrix );
-                                print_tab_int_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
+                                //print_tab_int_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
 
 
-                                // CONVERT TO HEXA FOR HAVING ASCII CHAR
 
-                                printf("\n==================== SUB-MESSAGES HEXA ====================\n");          // optionnel
-
-                                hexa2 = malloc( sizeof(int) * size_text * 2 * 2 );
-                                hexa2[0] = '\0';
-
-                                convert_bin_to_hexa2( sub_messages, hexa2, size_text);
-
-                                print_tab_char( hexa2, size_text * 2 * 2, 2 );
-
-
-                                printf("\n==================== FINAL MESSAGE ====================\n");
+                                printf("\n\n================== MESSAGE FINAL ==================\n");
                                 final_result = malloc( sizeof(char) * (size_text * 2 + 1) );              // +1 for \0
                                 final_result[0] = '\0';
 
                                 final_message( sub_messages, final_result, size_text * 2, size_matrix / NUM_MATRIX );
-
+                                printf("\n\n");
 
 
                                 // ECRITURE
-                                encrypt = fopen( "texte.txtc", "w" );
+                                encrypt = fopen( TEXT_ENCRYPTED, "w" );
                                 if( encrypt != NULL ){
                                     fwrite( final_result, sizeof(char), size_text * 2 + 1, encrypt );
                                 }else{
-                                    printf("Problème lors de l'ouverture de texte.txtc");
+                                    printf("\nProblème lors de l'ouverture de texte.txtc\n");
                                 }
+
 
 
                                 // FULL FREE !
                                 free(final_result);
-                                free(hexa2);
                                 for( i = 0; i < (size_text * 2) ; i++ ){
                                     free(sub_messages[i]);
                                 }
                                 free(sub_messages);
-
                                 free(matrix);
                                 free(hexa);
                                 free(bin);
                                 free(text);
+                                free(line);
 
                                 fclose(encrypt);
                                 fclose(explore_matrix);         // Close file
                                 fclose(explore);
                             }
                             else{
-                                printf("Impossible d'ouvrir le fichier !");     // text = NULL => print error
+                                printf("\nImpossible d'ouvrir le fichier !\n");     // text = NULL => print error
                             }
 
 
                         break;
             case 2:     // DECRYPTAGE
+                        printf("\n====================================================\n");
+                        printf("==================== DECRYPTAGE ====================\n");
+                        printf("====================================================\n");
 
-                        printf("\n\n\n\==================== DECRYPTAGE ====================\n");          // optionnel
 
-                        encrypt = fopen( "texte.txtc", "r" );
+                        // SEARCH MATRIX
+                        printf("\n\n==================== MATRICE ====================\n");
+
+                        explore_matrix = fopen(MATRICE, "r");
+
+                        matrix = malloc( sizeof(int) * size_matrix );
+                        init(matrix, size_matrix);
+
+                        index = malloc( sizeof(int) * size_initial_matrix );
+                        init( index, size_initial_matrix );
+
+                        line = malloc( sizeof(char) * SIZE );
+                        line[0] = '\0';
+
+                        read_matrix( explore_matrix, line, matrix, size_matrix );
+                        print_tab_int( matrix, size_matrix, size_matrix / NUM_MATRIX );
+
+                        matrix_order( matrix, index, size_matrix / NUM_MATRIX, size_initial_matrix);
+
+
+                        // open file encrypted
+                        encrypt = fopen( TEXT_ENCRYPTED, "r" );
 
                         if( encrypt != NULL ){
 
@@ -190,70 +208,76 @@ int main(int argc, char **argv)
                             size_text2 = strlen(text);
 
 
-
                             printf("\nAffichage du fichier:\n%s\n", text);
 
 
-                            // DECRYPT => TAKE THE 4 COLUMNS OF THE IDENTITY MATRIX
 
-                            printf("\n==================== TEXTE EN BINAIRE ====================\n");          // optionnel
+                            // printf("\n\n==================== TEXTE EN BINAIRE ====================\n");          // optionnel
 
                             bin = malloc( sizeof(int) * size_text2 * 8 );
                             init(bin, size_text2 * 8);
 
                             convert_char_to_bin( text, bin, size_text2 );
-                            print_tab_int( bin, size_text2 * 8, 8 );
+                            // Uncomment line 216 for more informations
+                            //print_tab_int( bin, size_text2 * 8, 8 );
+
+
+                            printf("\n\n===================== TEXTE  =====================\n");          // optionnel
+
+
+                            // DECRYPT => TAKE THE 4 COLUMNS OF THE IDENTITY MATRIX
 
                             bin_decrypted = (int *)malloc( sizeof(int *) * size_text2 * 2 );
                             for( i = 0; i < size_text2 * 2; i++ ){
                                 bin_decrypted[i] = (int *)malloc( sizeof(int) * ( size_matrix / NUM_MATRIX ) );
                             }
                             init_double( bin_decrypted, size_text2 * 2, size_matrix / NUM_MATRIX );
-                            //matrix_order();
 
-                            printf("\n==================== TEXT  ====================\n");          // optionnel
+                            final_bin( bin_decrypted, bin, index, size_text2 / 2, size_matrix / NUM_MATRIX );   // The correct bin for having the right text
 
-                            int cnt = 0;
-
-                            // PRINT TEXT DECRYPTED => NEED A FUNCTION
-                            for( i = 0; i < size_text2 / 2; i++ ){
-                                for( j = 0; j < size_matrix / NUM_MATRIX; j++ ){
-                                    if( j < 4 ){
-                                        bin_decrypted[i][j] = bin[j+cnt];
-                                    }
-                                    else{
-                                        bin_decrypted[i][j] = bin[j + 4 + cnt];
-                                    }
-                                }
-                                cnt += 16;
-                            }
-
-                            printf("ORO\n");
-                            print_tab_int_double( bin_decrypted, size_text2 / 2, size_matrix / NUM_MATRIX );
+                            // Uncomment line 233 for more informations
+                            //print_tab_int_double( bin_decrypted, size_text2 / 2, size_matrix / NUM_MATRIX );
 
 
                             final_result = malloc( sizeof(char) * (size_text2 + 1) );              // +1 for \0
                             final_result[0] = '\0';
 
                             final_message( bin_decrypted, final_result, size_text2 / 2, size_matrix / NUM_MATRIX );
+                            printf( "\n\nTaille texte: %d", strlen(final_result) );
+
+
+                            // ECRITURE
+                            decrypt = fopen( TEXT_DECRYPTED, "w" );
+                            if( decrypt != NULL ){
+                                fwrite( final_result, sizeof(char), size_text2 / 2 + 1, decrypt );
+                                printf("\n\nLe fichier a bien ete cree.\n");
+                            }else{
+                                printf("\nProbleme lors de l'ouverture de texte.txtc\n");
+                            }
+
 
 
                             free(final_result);
                             for( i = 0; i < size_text2 * 2 ; i++ ){
                                 free(bin_decrypted[i]);
                             }
+                            free(index);
+                            free(matrix);
                             free(bin);
                             free(text);
+                            free(line);
+                            fclose(decrypt);
                             fclose(encrypt);
+                            fclose(explore_matrix);
                         }
 
-                        free(line);
                         break;
 
             case 9:     printf("\nAu revoir !\n");
                         break;
 
-            default:    break;
+            default:    printf("\nVeuillez faire un choix.\n");
+                        break;
         }
 
     }while( choice != 9 );
