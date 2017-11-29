@@ -259,11 +259,7 @@ void calculate_sub_message( int *binary, int *matrix, int **sub_messages, int si
             result = 0;
             for( k = 0; k < size_initial_matrix; k++ ){     // calculate initial matrix's line with matrix's column
                 result += binary[k+cnt] * (matrix[k * 8 + j]);
-                /*f( i == 0 && j == 3 )
-                    printf("bin: %d x matrix: %d = %d \n", binary[k+cnt], (matrix[k * 8 + j]), result);*/
             }
-            /*if( i == 0 && j == 3 )
-                printf("result: %d\n", result);*/
             if( result == 0)
                 result = 48;
 
@@ -321,7 +317,7 @@ void final_message( int **bin, char *text_encrypted, int size_lines, int size_ma
             result = 48;
 
         text_encrypted[i] = result;
-        printf( "%c", text_encrypted[i] );
+        //printf( "%c", text_encrypted[i] );
     }
 
     text_encrypted[size_lines] = '\0';

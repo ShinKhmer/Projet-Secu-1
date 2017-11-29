@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define SIZE 500
+// VEUILLEZ MODIFIER LA TAILLE EN OCTET
+#define SIZE 50000000  // 5 MO
 #define NUM_MATRIX 4
+// VEUILLEZ MODIFIER S'IL VOUS PLAIT LES FICHIERS PRESENTS DANS LE DOSSIER
 #define MATRICE "matrice.txt"
-#define TEXT "texte.txt"
-#define TEXT_ENCRYPTED "texte.txtc"
-#define TEXT_DECRYPTED "texte_decrypted.txt"
+#define TEXT "Fichiers/texte.txt"
+#define TEXT_ENCRYPTED "Fichiers/texte.txtc"
+#define TEXT_DECRYPTED "Fichiers/texte_decrypted.txt"
 #include "functions.h"
 
 
@@ -85,7 +87,7 @@ int main(int argc, char **argv)
                                 // FILE RECOVERY
                                 read_file( explore, line, text );      // Function read and put all the lines read into one char chain
 
-                                printf("%s", text);
+                                //printf("%s", text);
                                 size_text = strlen(text);
 
 
@@ -97,12 +99,13 @@ int main(int argc, char **argv)
                                 printf( "\n\nTaille texte: %d\n\n", strlen(text) );
 
 
-                                printf("\n\n============= CARACTERES EN BINAIRE =============\n");
+                                //printf("\n\n============= CARACTERES EN BINAIRE =============\n");
 
                                 // CONVERT BINARY TO HEXA => NOT NECCESSARY
                                 convert_bin_to_hexa( bin, hexa, size_text * 2 );
 
-                                print_result( text, bin, hexa, size_text );
+                                // Uncomment line 108 for having more informations
+                                //print_result( text, bin, hexa, size_text );
 
 
 
@@ -208,7 +211,7 @@ int main(int argc, char **argv)
                             size_text2 = strlen(text);
 
 
-                            printf("\nAffichage du fichier:\n%s\n", text);
+                            //printf("\nAffichage du fichier:\n%s\n", text);
 
 
 
@@ -227,7 +230,7 @@ int main(int argc, char **argv)
 
                             // DECRYPT => TAKE THE 4 COLUMNS OF THE IDENTITY MATRIX
 
-                            bin_decrypted = (int *)malloc( sizeof(int *) * size_text2 * 2 );
+                            bin_decrypted = malloc( sizeof(int *) * size_text2 * 2 );
                             for( i = 0; i < size_text2 * 2; i++ ){
                                 bin_decrypted[i] = (int *)malloc( sizeof(int) * ( size_matrix / NUM_MATRIX ) );
                             }
