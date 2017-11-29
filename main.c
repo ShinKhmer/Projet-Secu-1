@@ -5,7 +5,7 @@
 #define SIZE 50000000  // 5 MO
 #define NUM_MATRIX 4
 // VEUILLEZ MODIFIER S'IL VOUS PLAIT LES FICHIERS PRESENTS DANS LE DOSSIER
-#define MATRICE "matrice.txt"
+#define MATRICE "Fichiers/matrice.txt"
 #define TEXT "Fichiers/texte.txt"
 #define TEXT_ENCRYPTED "Fichiers/texte.txtc"
 #define TEXT_DECRYPTED "Fichiers/texte_decrypted.txt"
@@ -96,6 +96,7 @@ int main(int argc, char **argv)
                                 init(bin, size_text * 8);                    // Possibilité d'optimiser le SIZE
 
                                 convert_char_to_bin( text, bin, size_text );
+                                printf("\nLecture du fichier %s", TEXT);
                                 printf( "\n\nTaille texte: %d\n\n", strlen(text) );
 
 
@@ -125,7 +126,7 @@ int main(int argc, char **argv)
 
 
 
-                                printf("\n\n================== MESSAGE FINAL ==================\n");
+                                //printf("\n\n================== MESSAGE FINAL ==================\n");
                                 final_result = malloc( sizeof(char) * (size_text * 2 + 1) );              // +1 for \0
                                 final_result[0] = '\0';
 
@@ -137,6 +138,8 @@ int main(int argc, char **argv)
                                 encrypt = fopen( TEXT_ENCRYPTED, "w" );
                                 if( encrypt != NULL ){
                                     fwrite( final_result, sizeof(char), size_text * 2 + 1, encrypt );
+
+                                    fprint("\nLe fichier %s a bien ete cree\n", TEXT_ENCRYPTED);
                                 }else{
                                     printf("\nProblème lors de l'ouverture de texte.txtc\n");
                                 }
@@ -253,7 +256,7 @@ int main(int argc, char **argv)
                             decrypt = fopen( TEXT_DECRYPTED, "w" );
                             if( decrypt != NULL ){
                                 fwrite( final_result, sizeof(char), size_text2 / 2 + 1, decrypt );
-                                printf("\n\nLe fichier a bien ete cree.\n");
+                                printf("\n\nLe fichier %s a bien ete cree.\n", TEXT_DECRYPTED);
                             }else{
                                 printf("\nProbleme lors de l'ouverture de texte.txtc\n");
                             }
