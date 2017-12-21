@@ -4,7 +4,6 @@
 void read_file( FILE *file, char* text ){
 
     long i = 0;
-    char c;
     if( text != NULL ){
         text[0] = '\0';
 
@@ -218,7 +217,6 @@ void calculate_sub_message( int *binary, int *matrix, int **sub_messages, long s
 void final_message( int **bin, char *text_encrypted, long size_lines, int size_matrix_column ){        // bin to char ASCII
     long i = 0;
     int j = 0;
-    int k = 0;
     int result = 0;
 
     for( i = 0; i < size_lines; i++ ){

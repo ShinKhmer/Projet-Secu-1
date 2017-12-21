@@ -7,9 +7,9 @@
 #define NUM_MATRIX 4        // G4
 // VEUILLEZ MODIFIER S'IL VOUS PLAIT LES FICHIERS PRESENTS DANS LE DOSSIER
 #define MATRICE "file/key2.txt"
-#define TEXT "Fichiers/Texte.txt"        // attente.jpg - Bonjour.txt
-#define TEXT_ENCRYPTED "Fichiers/texte.txtc"
-#define TEXT_DECRYPTED "Fichiers/Result.txt"
+#define TEXT "Fichiers/BlackPink.mkv"        // attente.jpg - Bonjour.txt
+#define TEXT_ENCRYPTED "Fichiers/BlackPink.mkvc"
+#define TEXT_DECRYPTED "Fichiers/Result.mkv"
 #include "functions.h"
 
 
@@ -24,14 +24,12 @@ int main(int argc, char **argv){
     int *matrix = NULL;
     int *index = NULL;
     int *bin = NULL;
-    char *hexa = NULL;
     int **sub_messages = NULL;
     unsigned char *final_result = NULL;
     int **bin_decrypted = NULL;
 
 
     long i = 0;
-    int j = 0;
     int choice = 0;
     long size_text = 0;
     long size_text2 = 0;
@@ -112,7 +110,6 @@ int main(int argc, char **argv){
                                 final_result[0] = '\0';
 
                                 final_message( sub_messages, final_result, size_text * 2, size_matrix / NUM_MATRIX);
-                                printf("\n\n");
 
 
                                 // ECRITURE
