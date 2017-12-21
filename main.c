@@ -2,18 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 // VEUILLEZ MODIFIER LA TAILLE EN OCTET
-#define SIZE 50000000  // 5 MO
-#define NUM_MATRIX 4
+#define SIZE 90000000  // 90 MO
+// VEUILLEZ INDIQUER LE NUMERO DE LA MATRICE
+#define NUM_MATRIX 4        // G4
 // VEUILLEZ MODIFIER S'IL VOUS PLAIT LES FICHIERS PRESENTS DANS LE DOSSIER
-#define MATRICE "Fichiers/matrice.txt"
-#define TEXT "Fichiers/texte.txt"
+#define MATRICE "file/key2.txt"
+#define TEXT "Fichiers/Texte.txt"        // attente.jpg - Bonjour.txt
 #define TEXT_ENCRYPTED "Fichiers/texte.txtc"
-#define TEXT_DECRYPTED "Fichiers/texte_decrypted.txt"
+#define TEXT_DECRYPTED "Fichiers/Result.txt"
 #include "functions.h"
 
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv){
 
     FILE* explore = NULL;
     FILE* explore_matrix = NULL;
@@ -30,11 +30,11 @@ int main(int argc, char **argv)
     int **bin_decrypted = NULL;
 
 
-    int i = 0;
+    long i = 0;
     int j = 0;
     int choice = 0;
-    int size_text = 0;
-    int size_text2 = 0;
+    long size_text = 0;
+    long size_text2 = 0;
     int size_matrix = NUM_MATRIX*8;     // A modifier
     int size_initial_matrix = NUM_MATRIX;
 
@@ -63,13 +63,13 @@ int main(int argc, char **argv)
 
                         explore_matrix = fopen(MATRICE, "r");
                         matrix = malloc( sizeof(int) * size_matrix );
-                        init(matrix, size_matrix);
+                        init_tab(matrix, size_matrix);
 
                         read_matrix( explore_matrix, line, matrix, size_matrix );
                         print_tab_int( matrix, size_matrix, size_matrix / NUM_MATRIX );
 
                         // FILE POINTER
-                        explore = fopen(TEXT, "r");     // Open file / r+: read and write
+                        explore = fopen(TEXT, "rb");     // Open file / r+: read and write
 
 
                             if( explore != NULL ){
@@ -79,47 +79,28 @@ int main(int argc, char **argv)
                                 text[0] = '\0';
 
 
-                                hexa = malloc( sizeof(char) * SIZE * 8 / 4 );
-                                hexa[0] = '\0';
-
-                                printf("\n\n============== CONTENU DU FICHIER ===============\n");
-
                                 // FILE RECOVERY
-                                read_file( explore, line, text );      // Function read and put all the lines read into one char chain
+                                read_file( explore, text );      // Function read and put all the lines read into one char chain
 
-                                //printf("%s", text);
-                                size_text = strlen(text);
-
+                                size_text = ftell(explore);
 
                                 // CONVERT CHAR TO BINARY
                                 bin = malloc( sizeof(int) * size_text * 8 );
-                                init(bin, size_text * 8);                    // Possibilité d'optimiser le SIZE
+                                //init_tab(bin, size_text * 8);                    // Possibilité d'optimiser le SIZE
 
                                 convert_char_to_bin( text, bin, size_text );
-                                printf("\nLecture du fichier %s", TEXT);
-                                printf( "\n\nTaille texte: %d\n\n", strlen(text) );
-
-
-                                //printf("\n\n============= CARACTERES EN BINAIRE =============\n");
-
-                                // CONVERT BINARY TO HEXA => NOT NECCESSARY
-                                convert_bin_to_hexa( bin, hexa, size_text * 2 );
-
-                                // Uncomment line 108 for having more informations
-                                //print_result( text, bin, hexa, size_text );
-
+                                printf( "\n\nTaille : %d\n", size_text);
 
 
                                 // CALCULATE SUB MESSAGES   => Uncomment line 109 and 119 for having more informations
 
-                                //printf("\n\n==================== SOUS-MESSAGES ====================\n");
 
                                 sub_messages = malloc( sizeof(int *) * size_text * 2 );
                                 for( i = 0; i < size_text * 2; i++ ){
                                     sub_messages[i] = malloc( sizeof(int) * size_matrix / NUM_MATRIX);
                                 }
 
-                                init_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
+                                //init_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
 
                                 calculate_sub_message( bin, matrix, sub_messages, size_text, size_matrix, size_initial_matrix );
                                 //print_tab_int_double( sub_messages, size_text * 2, size_matrix / NUM_MATRIX );
@@ -127,24 +108,22 @@ int main(int argc, char **argv)
 
 
                                 //printf("\n\n================== MESSAGE FINAL ==================\n");
-                                final_result = malloc( sizeof(char) * (size_text * 2 + 1) );              // +1 for \0
+                                final_result = malloc( sizeof(char) * (size_text * 2) );              // +1 for \0
                                 final_result[0] = '\0';
 
-                                final_message( sub_messages, final_result, size_text * 2, size_matrix / NUM_MATRIX );
+                                final_message( sub_messages, final_result, size_text * 2, size_matrix / NUM_MATRIX);
                                 printf("\n\n");
 
 
                                 // ECRITURE
-                                encrypt = fopen( TEXT_ENCRYPTED, "w" );
+                                encrypt = fopen( TEXT_ENCRYPTED, "wb" );
                                 if( encrypt != NULL ){
-                                    fwrite( final_result, sizeof(char), size_text * 2 + 1, encrypt );
+                                    fwrite( final_result, sizeof(char), size_text * 2, encrypt );
 
-                                    fprint("\nLe fichier %s a bien ete cree\n", TEXT_ENCRYPTED);
+                                    printf("\nLe fichier %s a bien ete cree\n", TEXT_ENCRYPTED);
                                 }else{
                                     printf("\nProblème lors de l'ouverture de texte.txtc\n");
                                 }
-
-
 
                                 // FULL FREE !
                                 free(final_result);
@@ -153,7 +132,6 @@ int main(int argc, char **argv)
                                 }
                                 free(sub_messages);
                                 free(matrix);
-                                free(hexa);
                                 free(bin);
                                 free(text);
                                 free(line);
@@ -180,10 +158,10 @@ int main(int argc, char **argv)
                         explore_matrix = fopen(MATRICE, "r");
 
                         matrix = malloc( sizeof(int) * size_matrix );
-                        init(matrix, size_matrix);
+                        init_tab(matrix, size_matrix);
 
-                        index = malloc( sizeof(int) * size_initial_matrix );
-                        init( index, size_initial_matrix );
+                        index = malloc( sizeof(int) * size_initial_matrix );        // matrix order
+                        init_tab( index, size_initial_matrix );
 
                         line = malloc( sizeof(char) * SIZE );
                         line[0] = '\0';
@@ -195,7 +173,7 @@ int main(int argc, char **argv)
 
 
                         // open file encrypted
-                        encrypt = fopen( TEXT_ENCRYPTED, "r" );
+                        encrypt = fopen( TEXT_ENCRYPTED, "rb" );
 
                         if( encrypt != NULL ){
 
@@ -204,74 +182,63 @@ int main(int argc, char **argv)
                             text = malloc( sizeof(char) * SIZE );
                             text[0] = '\0';
 
-                            size_text2 = 0;
-
 
                             // READ FILE DECRYPT
 
-                            read_file( encrypt, line, text);
-
-                            size_text2 = strlen(text);
-
-
-                            //printf("\nAffichage du fichier:\n%s\n", text);
-
+                            read_file(encrypt, text);
+                            fseek(encrypt, 0, SEEK_END);
+                            size_text2 = ftell(encrypt);
+                            fseek(encrypt, 0, SEEK_SET);
+                            printf("size_encrypt: %ld\n", size_text2);
 
 
                             // printf("\n\n==================== TEXTE EN BINAIRE ====================\n");          // optionnel
-
                             bin = malloc( sizeof(int) * size_text2 * 8 );
-                            init(bin, size_text2 * 8);
-
                             convert_char_to_bin( text, bin, size_text2 );
-                            // Uncomment line 216 for more informations
-                            //print_tab_int( bin, size_text2 * 8, 8 );
+                            printf("Convert char to bin: ok\n");
 
 
-                            printf("\n\n===================== TEXTE  =====================\n");          // optionnel
+                            //printf("\n\n===================== TEXTE  =====================\n");          // optionnel
 
 
                             // DECRYPT => TAKE THE 4 COLUMNS OF THE IDENTITY MATRIX
 
-                            bin_decrypted = malloc( sizeof(int *) * size_text2 * 2 );
-                            for( i = 0; i < size_text2 * 2; i++ ){
-                                bin_decrypted[i] = (int *)malloc( sizeof(int) * ( size_matrix / NUM_MATRIX ) );
+                            bin_decrypted = malloc( sizeof(int *) * size_text2 / 2);
+                            for( i = 0; i < (size_text2 / 2); i++ ){
+                                bin_decrypted[i] = malloc( sizeof(int) * ( size_matrix / NUM_MATRIX ) );
                             }
-                            init_double( bin_decrypted, size_text2 * 2, size_matrix / NUM_MATRIX );
-
+                            printf("Malloc ok\n");
                             final_bin( bin_decrypted, bin, index, size_text2 / 2, size_matrix / NUM_MATRIX );   // The correct bin for having the right text
-
-                            // Uncomment line 233 for more informations
-                            //print_tab_int_double( bin_decrypted, size_text2 / 2, size_matrix / NUM_MATRIX );
+                            printf("Check with key: ok\n");
 
 
-                            final_result = malloc( sizeof(char) * (size_text2 + 1) );              // +1 for \0
+                            final_result = malloc( sizeof(char) * (size_text2 / 2) );
                             final_result[0] = '\0';
 
                             final_message( bin_decrypted, final_result, size_text2 / 2, size_matrix / NUM_MATRIX );
-                            printf( "\n\nTaille texte: %d", strlen(final_result) );
-
+                            printf("Final message ready\n");
 
                             // ECRITURE
-                            decrypt = fopen( TEXT_DECRYPTED, "w" );
+                            decrypt = fopen( TEXT_DECRYPTED, "wb" );
                             if( decrypt != NULL ){
-                                fwrite( final_result, sizeof(char), size_text2 / 2 + 1, decrypt );
+                                fwrite( final_result, sizeof(char), size_text2 / 2, decrypt );
+                                //fwrite( final_result, sizeof(char), size_text2 / 2, decrypt );
                                 printf("\n\nLe fichier %s a bien ete cree.\n", TEXT_DECRYPTED);
                             }else{
-                                printf("\nProbleme lors de l'ouverture de texte.txtc\n");
+                                printf("\nProbleme lors de l'ouverture de %s\n", TEXT_DECRYPTED);
                             }
 
 
 
                             free(final_result);
-                            for( i = 0; i < size_text2 * 2 ; i++ ){
+                            for( i = 0; i < size_text2 / 2 ; i++ ){
                                 free(bin_decrypted[i]);
                             }
                             free(index);
                             free(matrix);
                             free(bin);
-                            free(text);
                             free(line);
+                            free(text);
                             fclose(decrypt);
                             fclose(encrypt);
                             fclose(explore_matrix);

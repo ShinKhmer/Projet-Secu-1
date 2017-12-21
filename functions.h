@@ -1,76 +1,40 @@
 
+// Last change: change 48
 
-void read_file( char *file, char *line, char* text ){
+void read_file( FILE *file, char* text ){
 
-    int i = 0;
-    int result = 0;         // Each line read will make cnt_line++
-
+    long i = 0;
+    char c;
     if( text != NULL ){
         text[0] = '\0';
 
-        while( fgets( line, SIZE, file ) != NULL ){
-            strcat( text, line );
+
+        while( !feof(file) ){
+            text[i] = fgetc(file);
+            i++;
         }
+        text[i] = '\0';
+        printf("\nLe fichier a bien ete lu!\n" );
+
 
 
     }else{
-        printf("L'allocation de la variable text n'a pas fonctionné.");
+        printf("L'allocation de la variable text n'a pas fonctionné.\n");
     }
-
-
-    text[i] != '\0';
-
 }
 
-void read_file_encrypted( char *file, char *line, char* text ){
-
-    int i = 0;
-    int cnt_line = 0;                            // Each line read will make cnt_line++
-
-    if( text != NULL ){
-    text[0] = '\0';
-
-        while( fgets( line, SIZE, file) != NULL ){
-
-            if(cnt_line == 0){                   // 1st line => copy
-                strcpy( text, line );
-            }
-            else{                           // next lines => concat
-                strcat( text, line );
-            }
 
 
-            printf( "Taille ligne %d: %d\n", (cnt_line + 1), strlen(line) );
-            cnt_line++;
-        }
-    }else{
-        printf("L'allocation de la variable text n'a pas fonctionné.");
-    }
 
-
-    while( text[i] != '\0' ){
-        i++;
-    }
-
-    if( cnt_line == 1 ){
-        while( text[i] != '\0' ){
-            if( text[i] == '\n' )
-                text[i] == '\0';
-        }
-    }
-
-
-}
-
-void init( int *tab, int size_tab ){
-    int i = 0;
+void init_tab( int *tab, long size_tab ){
+    long i = 0;
 
     for( i = 0; i < size_tab; i++ ){
         tab[i] = 0;
     }
 }
 
-void init_double( int **tab, int line, int columns ){
+void init_double( int **tab, long line, int columns ){
     int i = 0;
     int j = 0;
 
@@ -82,20 +46,17 @@ void init_double( int **tab, int line, int columns ){
 }
 
 
-void convert_char_to_bin( char *text, int *bin, int size_tab ){
-    int i = 0;
+void convert_char_to_bin( char *text, int *bin, long size_tab ){
+    long i = 0;
     int j = 0;
     int mem = 0;
-    int cnt = 0;
+    long cnt = 0;
 
     for( i = 0; i < size_tab ; i++ ){
         mem = text[i];
 
         if( mem < 0 )           // for extended ASCII
             mem += 256;
-
-        if( mem == 48 )         // 0 in ASCII must have 0000 0000
-            mem = 0;
 
         for( j = 7; j >= 0; j-- ){
             if( mem % 2 == 0 ){
@@ -108,7 +69,6 @@ void convert_char_to_bin( char *text, int *bin, int size_tab ){
         cnt += 8;
     }
 
-    cnt = 0;
 }
 
 void convert_bin_to_hexa( int *bin, char *hexa, int size_tab ){
@@ -200,31 +160,7 @@ void convert_bin_to_hexa_double( int **bin, char *hexa, int size_tab ){
 }
 
 
-void print_result( char *text, int* bin, char *hexa, int size_tab ){
-    int cnt = 0;
-    int i = 0;
-
-    for( i = 0; i < size_tab * 8; i++ ){
-
-        if( i == 0 ){                                           // print first char
-            printf("%c: ", text[cnt]);
-        }
-
-        if( i != 0 && i % 8 == 0 ){                             // print hexa, return to the line then print char
-            printf(" => %c %c\n%c: ", hexa[cnt*2], hexa[cnt*2+1], text[cnt+1]);
-            cnt++;
-        }
-
-        printf("%d", bin[i]);                                   // print binary
-
-        if( i == size_tab * 8 - 1 )                                 // print last hexa
-            printf(" => %c %c ", hexa[cnt*2], hexa[cnt*2+1] );
-    }
-
-    printf("\n\n");
-}
-
-void read_matrix( char *file, char *line, int *tab, int size_tab ){     // Penser à mettre des erreurs lorsqu'il y a des colonnes identiques & colonne à 0
+void read_matrix( FILE *file, char *line, int *tab, int size_tab ){     // Penser à mettre des erreurs lorsqu'il y a des colonnes identiques & colonne à 0
     int i = 0;
     int cnt = 0;                // count number
 
@@ -245,8 +181,8 @@ void read_matrix( char *file, char *line, int *tab, int size_tab ){     // Pense
     }
 }
 
-void calculate_sub_message( int *binary, int *matrix, int **sub_messages, int size_text, int size_matrix, int size_initial_matrix ){
-    int i = 0;
+void calculate_sub_message( int *binary, int *matrix, int **sub_messages, long size_text, int size_matrix, int size_initial_matrix ){
+    long i = 0;
     int j = 0;
     int k = 0;
     int cnt = 0;
@@ -257,11 +193,9 @@ void calculate_sub_message( int *binary, int *matrix, int **sub_messages, int si
         for( j = 0; j < size_matrix / NUM_MATRIX; j++ ){       // number of columns in the matrix
 
             result = 0;
-            for( k = 0; k < size_initial_matrix; k++ ){     // calculate initial matrix's line with matrix's column
+            for( k = 0; k < size_initial_matrix; k++ ){         // calculate initial matrix's line with matrix's column
                 result += binary[k+cnt] * (matrix[k * 8 + j]);
             }
-            if( result == 0)
-                result = 48;
 
             if( result % 2 == 0 ){
                 sub_messages[i][j] = 0;
@@ -281,9 +215,10 @@ void calculate_sub_message( int *binary, int *matrix, int **sub_messages, int si
 }
 
 
-void final_message( int **bin, char *text_encrypted, int size_lines, int size_matrix_column ){        // bin to char ASCII
-    int i = 0;
+void final_message( int **bin, char *text_encrypted, long size_lines, int size_matrix_column ){        // bin to char ASCII
+    long i = 0;
     int j = 0;
+    int k = 0;
     int result = 0;
 
     for( i = 0; i < size_lines; i++ ){
@@ -312,16 +247,13 @@ void final_message( int **bin, char *text_encrypted, int size_lines, int size_ma
                 }
             }
         }
-
-        if( result == 0 )
-            result = 48;
-
         text_encrypted[i] = result;
-        //printf( "%c", text_encrypted[i] );
     }
-
-    text_encrypted[size_lines] = '\0';
 }
+
+
+
+
 
 
 void matrix_order( int *matrix, int *index, int size_tab, int size_id_matrix){
@@ -347,12 +279,11 @@ void matrix_order( int *matrix, int *index, int size_tab, int size_id_matrix){
 }
 
 
-void final_bin( int ** bin_decrypted, int *bin, int *index, int lines, int columns ){
-    int i = 0;
+void final_bin( int ** bin_decrypted, int *bin, int *index, long lines, int columns ){
+    long i = 0;
     int j = 0;
     int cnt = 0;
 
-    // PRINT TEXT DECRYPTED => NEED A FUNCTION
     for( i = 0; i < lines; i++ ){
         for( j = 0; j < columns; j++ ){
             if( j < 4 ){
